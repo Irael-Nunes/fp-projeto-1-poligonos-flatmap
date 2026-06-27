@@ -9,8 +9,7 @@ import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 
 import java.util.List;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 /// Uma aplicação desktop (usando a biblioteca [OpenJFX (JavaFX)](http://openjfx.io))
 /// que desenha polígonos na tela e calcula o perímetro de cada um:
@@ -82,16 +81,18 @@ public class PoligonosApp extends Application {
         final var root = new Pane();
         final var scene = new Scene(root, 800, 600);
 
-        for (final var listaPontos : pontosPoligonos) {
-            final var poligono = new Polygon();
-            for (final Point point : listaPontos) {
-                poligono.getPoints().addAll(point.x(), point.y());
-            }
-
-            poligono.setFill(Color.BLUE);
-            poligono.setStroke(Color.BLACK);
-            root.getChildren().add(poligono);
-        }
+        pontosPoligonos.stream()
+            .map(listaPontos -> {
+                final var coords = listaPontos.stream()
+                    .flatMap(p -> Stream.of(p.x(), p.y()))
+                    .toList();
+                final var poligono = new Polygon();
+                poligono.getPoints().addAll(coords);
+                poligono.setFill(Color.BLUE);
+                poligono.setStroke(Color.BLACK);
+                return poligono;
+            })
+            .forEach(root.getChildren()::add);
 
         final List<String> perimetros = perimetros().stream().map(p -> String.format("%.1f", p)).toList();
         final var label1 = newLabel("Perímetro dos Polígonos: " + perimetros, 500);
